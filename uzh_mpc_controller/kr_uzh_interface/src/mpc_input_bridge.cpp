@@ -44,66 +44,35 @@ void MPCInputBridge::positionCommandCallback(
   // Received a message of type kr_mav_msgs::PositionCommand from the
   // kr_mav_control pipeline and need to publish a message to the
   // uzh_mpc_controller of type quadrotor_msgs::TrajectoryPoint
-  quadrotor_msgs::Trajectory::Ptr p_reference_traj =
-    boost::make_shared<quadrotor_msgs::Trajectory>();
-  quadrotor_msgs::TrajectoryPoint start_point;
+  quadrotor_msgs::TrajectoryPoint::Ptr p_reference_traj_pt =
+    boost::make_shared<quadrotor_msgs::TrajectoryPoint>();
   quadrotor_msgs::TrajectoryPoint goal_point;
 
-  // Before we send out the trajectory first check that it isn't a previously
-  // sent trajectory, only send new trajectories
-  if (std::abs((msg->position.x - last_goal_.x) < MPCInputBridge::EPSILON)
-      && std::abs((msg->position.y - last_goal_.y) < MPCInputBridge::EPSILON)
-      && std::abs((msg->position.z - last_goal_.z) < MPCInputBridge::EPSILON))
-  {
-    return;
-  }
-  else
-  {
-    last_goal_ = msg->position;
-  }
-
   // Fill the message
-  p_reference_traj->header = msg->header;
-
-  start_point.time_from_start.sec = 0;
-  start_point.time_from_start.nsec = 0;
-
-  goal_point.time_from_start.sec = 2;
-  goal_point.time_from_start.nsec = 0;
-
-  start_point.pose.position = current_odom_.pose.pose.position;
-  goal_point.pose.position = msg->position;
-
-  start_point.heading = msg->yaw;
-  start_point.heading_rate = msg->yaw_dot;
-  start_point.heading_acceleration = 0.0f;
-
   tf2::Quaternion quat_tf2;
   quat_tf2.setRPY(0, 0, msg->yaw);
   geometry_msgs::Quaternion quat_msg;
   quat_msg = tf2::toMsg(quat_tf2);
-  start_point.pose.orientation = quat_msg;
-  goal_point.pose.orientation = quat_msg;
 
-  goal_point.velocity.linear = msg->velocity;
-  goal_point.velocity.angular = geometry_msgs::Vector3();
+  p_reference_traj_pt->pose.orientation = quat_msg;
+  p_reference_traj_pt->pose.position = msg->position;
 
-  goal_point.acceleration.linear  = msg->acceleration;
-  goal_point.acceleration.angular = geometry_msgs::Vector3();
+  p_reference_traj_pt->velocity.linear = msg->velocity;
+  p_reference_traj_pt->velocity.angular = geometry_msgs::Vector3();
 
-  goal_point.jerk.linear = msg->jerk;
-  goal_point.jerk.angular = geometry_msgs::Vector3();
+  p_reference_traj_pt->acceleration.linear  = msg->acceleration;
+  p_reference_traj_pt->acceleration.angular = geometry_msgs::Vector3();
 
-  goal_point.snap.linear = geometry_msgs::Vector3();
-  goal_point.snap.angular = geometry_msgs::Vector3();
+  p_reference_traj_pt->jerk.linear = msg->jerk;
+  p_reference_traj_pt->jerk.angular = geometry_msgs::Vector3();
 
-  goal_point.heading = msg->yaw;
-  goal_point.heading_rate = msg->yaw_dot;
-  goal_point.heading_acceleration = 0.0f;
+  p_reference_traj_pt->snap.linear = geometry_msgs::Vector3();
+  p_reference_traj_pt->snap.angular = geometry_msgs::Vector3();
+
+  p_reference_traj_pt->heading = msg->yaw;
+  p_reference_traj_pt->heading_rate = msg->yaw_dot;
+  p_reference_traj_pt->heading_acceleration = 0.0f;
 
   // Publish the message
-  p_reference_traj->type = 3;
-  p_reference_traj->points.push_back(start_point);
-  p_reference_traj->points.push_back(goal_point);
-  trajectory_pub_.publish(p_reference_traj);
+  trajectory_point_pub_.publish(p_reference_traj_pt);
 }
