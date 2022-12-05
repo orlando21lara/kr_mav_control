@@ -17,14 +17,14 @@ class MPCOutputBridge {
   void controlCommandCallback(const quadrotor_msgs::ControlCommand::ConstPtr
       &msg);
 
-  ros::NodeHandle nh_;
-  ros::NodeHandle pnh_;     // Private node handle
+  ros::NodeHandle nh_;      // ROS node handle
+  ros::NodeHandle pnh_;     // Private ROS node handle
 
   // Subscribers to topics from the uzh_mpc_controller
-  ros::Subscriber control_command_sub_;
+  ros::Subscriber control_command_sub_;         // Control output from mpc
 
   // Publishers to topics to the kr_mav_control
-  ros::Publisher so3_command_pub_;
+  ros::Publisher so3_command_pub_;  // Control output to kr_mav_control pipeline
 
   // Need odom to use current orientation for data message conversions
   ros::Subscriber odom_sub_;

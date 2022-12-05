@@ -8,8 +8,6 @@ MPCInputBridge::MPCInputBridge()
 MPCInputBridge::MPCInputBridge(const ros::NodeHandle &nh)
   : nh_(nh) {
   // Subscribers
-  odom_sub_ = nh_.subscribe("odom", 1, &MPCInputBridge::odomCallback, this,
-      ros::TransportHints().tcpNoDelay());
   enable_motors_sub_ = nh_.subscribe("enable_motors", 1,
       &MPCInputBridge::enableMotorsCallback, this);
   position_command_sub_ = nh_.subscribe("position_cmd", 1,
@@ -18,14 +16,8 @@ MPCInputBridge::MPCInputBridge(const ros::NodeHandle &nh)
   // Publishers
   start_pub_ = nh_.advertise<std_msgs::Empty>("autopilot/start", 1);
   off_pub_ = nh_.advertise<std_msgs::Empty>("autopilot/off", 1);
-  trajectory_pub_ =
-      nh_.advertise<quadrotor_msgs::Trajectory>("autopilot/trajectory", 1);
   trajectory_point_pub_ = nh_.advertise<quadrotor_msgs::TrajectoryPoint>(
     "autopilot/reference_state", 1);
-}
-
-void MPCInputBridge::odomCallback(const nav_msgs::Odometry::ConstPtr &msg) {
-  current_odom_ = *msg;
 }
 
 void MPCInputBridge::enableMotorsCallback(
