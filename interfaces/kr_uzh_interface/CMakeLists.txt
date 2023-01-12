@@ -56,10 +56,8 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(mpc_input_bridge_node src/mpc_input_bridge_node.cpp src/mpc_input_bridge.cpp)
-target_link_libraries(mpc_input_bridge_node ${catkin_LIBRARIES})
-
-add_executable(mpc_output_bridge_node src/mpc_output_bridge_node.cpp src/mpc_output_bridge.cpp)
-target_link_libraries(mpc_output_bridge_node ${catkin_LIBRARIES})
-
+add_executable(mpc_bridge_node 
+  src/mpc_bridge_node.cpp 
+  src/mpc_bridge.cpp)
+target_link_libraries(mpc_bridge_node ${catkin_LIBRARIES})
 

@@ -1,0 +1,62 @@
+<launch>
+  <arg name="mav_name" default="quadrotor"/>
+  <arg name="mav_type" default="hummingbird"/>
+  <arg name="mass" default="0.5"/>
+
+  <arg name="odom_topic" default="odom"/>
+
+  <arg name="start_nodelet_manager" default="true"/>
+  <arg name="nodelet_manager_name" default="nodelet_manager_control"/>
+
+  <group ns="$(arg mav_name)">
+    <param name="mass" value="$(arg mass)"/>
+
+    <!-- Control stuff -->
+    <node pkg="nodelet"
+      type="nodelet"
+      name="$(arg nodelet_manager_name)"
+      args="manager"
+      output="screen"
+      if="$(arg start_nodelet_manager)"/>
+
+    <node pkg="nodelet"
+      type="nodelet"
+      name="trackers_manager"
+      args="load kr_trackers_manager/TrackersManager $(arg nodelet_manager_name)"
+      output="screen">
+      <rosparam file="$(find kr_mav_launch)/config/trackers.yaml"/>
+      <rosparam file="$(find kr_mav_launch)/config/tracker_params.yaml"/>
+      <remap from="~odom" to="$(arg odom_topic)"/>
+      <remap from="~cmd" to="position_cmd"/>
+    </node>
+
+    <node pkg="rpg_mpc" type="autopilot_mpc_instance" name="autopilot" output="screen">
+      <rosparam file="$(find state_predictor)/parameters/hummingbird.yaml" />
+      <rosparam file="$(find rpg_mpc)/parameters/default.yaml" />
+      <rosparam file="$(find rpg_rotors_interface)/parameters/autopilot.yaml" />
+
+      <param name="velocity_estimate_in_world_frame" value="false" />
+      <param name="state_estimate_timeout" value="0.1" />
+      <param name="control_command_delay" value="0.00" />
+
+      <remap from="autopilot/state_estimate" to="$(arg odom_topic)" />
+    </node>
+
+    <node pkg="kr_uzh_interface" type="mpc_bridge_node" name="mpc_bridge" output="screen">
+      <remap from="odom" to="$(arg odom_topic)" />
+      <remap from="enable_motors" to="motors" />
+      <rosparam file="$(find kr_mav_launch)/config/gains.yaml"/>
+      <param name="mass" value="$(arg mass)"/>
+    </node>
+
+    <!-- MAV Manager -->
+    <node pkg="kr_mav_manager"
+      type="mav_services"
+      name="mav_services"
+      output="screen">
+      <rosparam file="$(find kr_mav_launch)/config/mav_manager_params.yaml"/>
+      <remap from="odom" to="$(arg odom_topic)"/>
+    </node>
+
+  </group>
+</launch>
